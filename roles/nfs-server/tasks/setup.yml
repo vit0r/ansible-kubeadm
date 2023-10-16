@@ -1,0 +1,30 @@
+- name: install nfs-server
+  package:
+    name: nfs-kernel-server
+    state: present
+
+- name: create nfs directory
+  file:
+    path: "{{ nfs_path }}"
+    state: directory
+    mode: 0777
+    owner: nobody
+    group: nogroup
+
+- name: apply template exports
+  template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0770
+    backup: yes
+
+- name: update exports
+  shell: exportfs -a
+
+- name: start nfs-server
+  systemd:
+    state: restarted
+    enabled: yes
+    name: nfs-kernel-server

@@ -1,0 +1,15 @@
+- hosts: controlplane
+  become_user: root
+  remote_user: debian
+  become: yes
+  roles:
+    - { role: commons }
+    - { role: controlplane }
+
+- hosts: nodes
+  become_user: root
+  remote_user: debian
+  become: yes
+  roles:
+    - { role: commons }
+    - { role: nodes }

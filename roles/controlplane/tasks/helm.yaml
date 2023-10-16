@@ -1,0 +1,117 @@
+- name: download helm
+  unarchive:
+    src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: /tmp/
+    remote_src: yes
+    owner: "{{ ansible_ssh_user }}"
+    group: root
+    mode: "0770"
+
+- name: copy helm bin
+  copy:
+    src: /tmp/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    remote_src: yes
+    owner: "{{ ansible_ssh_user }}"
+    group: root
+    mode: "0770"
+
+- name: add repo helm charts
+  kubernetes.core.helm_repository:
+    name: "{{ item.name }}"
+    repo_url: "{{ item.repo_url }}"
+  with_items:
+    - {
+        "name": "nfs-subdir-external-provisioner",
+        "repo_url": "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner",
+      }
+    - { "name": "metallb", "repo_url": "https://metallb.github.io/metallb" }
+    - {
+        "name": "prometheus-community",
+        "repo_url": "https://prometheus-community.github.io/helm-charts",
+      }
+    - { "name": "grafana", "repo_url": "https://grafana.github.io/helm-charts" }
+    - { "name": "jetstack", "repo_url": "https://charts.jetstack.io" }
+    - {
+        "name": "ingress-nginx",
+        "repo_url": "https://kubernetes.github.io/ingress-nginx",
+      }
+    - {
+        "name": "metrics-server",
+        "repo_url": "https://kubernetes-sigs.github.io/metrics-server/",
+      }
+    - { "name": "hashicorp", "repo_url": "https://helm.releases.hashicorp.com" }
+
+- name: deploy nfs-subdir-external-provisioner with values
+  kubernetes.core.helm:
+    name: nfs-subdir-external-provisioner
+    chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+    release_namespace: storage
+    create_namespace: true
+    wait: true
+    values:
+      storageClass.name: nfs
+      nfs:
+        server: "{{ nfs_server_ip }}"
+        path: "/k8s-data"
+      archiveOnDelete: true
+
+- name: wait for nfs-client initialize
+  pause:
+    minutes: 3
+
+- name: set nfs-client to default storageclass
+  shell: 'kubectl patch sc/nfs -p ''{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":true}}}'' > is-default-class.log'
+  args:
+    chdir: $HOME
+    creates: is-default-class.log
+
+- name: helm deploy kube-prometheus-stack
+  kubernetes.core.helm:
+    name: prometheus-stack
+    chart_ref: prometheus-community/kube-prometheus-stack
+    release_namespace: monitoring
+    create_namespace: true
+    wait: true
+
+- name: helm deploy loki-stack
+  kubernetes.core.helm:
+    name: loki-stack
+    chart_ref: grafana/loki-stack
+    release_namespace: monitoring
+    create_namespace: true
+    wait: true
+
+- name: helm deploy cert-manager
+  kubernetes.core.helm:
+    name: cert-manager
+    chart_ref: jetstack/cert-manager
+    release_namespace: cert-manager
+    create_namespace: true
+    wait: true
+    set_values:
+      - value: installCRDs=true
+        value_type: string
+
+- name: helm deploy metallb
+  kubernetes.core.helm:
+    name: metallb
+    chart_ref: metallb/metallb
+    release_namespace: metallb-system
+    create_namespace: true
+    wait: true
+    set_values:
+      - value: installCRDs=true
+        value_type: string
+
+- name: put metallb template
+  template:
+    src: metallb.j2
+    dest: /tmp/metallb.yaml
+    mode: 0760
+
+- name: put metallb template
+  shell: kubectl apply -f /tmp/metallb.yaml > metallb.log
+  args:
+    chdir: $HOME
+    creates: metallb.log

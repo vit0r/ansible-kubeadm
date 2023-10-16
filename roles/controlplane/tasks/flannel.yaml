@@ -1,0 +1,5 @@
+- name: kubectl apply flannel
+  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml > flannel.log
+  args:
+    chdir: $HOME
+    creates: flannel.log

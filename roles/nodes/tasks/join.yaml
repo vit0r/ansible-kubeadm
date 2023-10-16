@@ -1,0 +1,11 @@
+- name: kubeadm force reset
+  shell: kubeadm reset -f > kubeadmreset.log
+  args:
+    chdir: $HOME
+    creates: kubeadmreset.log
+
+- name: join node to cluster
+  shell: "{{ hostvars[groups['controlplane'][0]]['join_command'] }} > joincommand.log"
+  args:
+    chdir: $HOME
+    creates: joincommand.log

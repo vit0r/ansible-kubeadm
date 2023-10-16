@@ -1,0 +1,41 @@
+- name: download containerd
+  unarchive:
+    src: https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+    dest: /usr/local/
+    remote_src: yes
+
+- name: create containerd directory
+  file:
+    path: /etc/containerd
+    state: directory
+    mode: 0766
+    owner: root
+    group: root
+
+- name: download containerd service
+  get_url:
+    url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+    dest: /etc/systemd/system/containerd.service
+    mode: 0766
+
+- name: create containerd symbolic link
+  file:
+    src: /usr/local/bin/containerd
+    dest: /usr/bin/containerd
+    state: link
+
+- name: create containerd default conf
+  shell: containerd config default | sudo tee /etc/containerd/config.toml
+
+- name: replace SystemdCgroup to true
+  shell: sed -i -e 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+
+- name: reload services configs
+  systemd:
+    daemon_reload: yes
+
+- name: enable and restart containerd service
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes

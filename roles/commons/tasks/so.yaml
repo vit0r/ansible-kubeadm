@@ -1,0 +1,97 @@
+- name: set new hostname
+  hostname:
+    name: "{{ ansible_ssh_host | replace('.','') }}"
+    use: systemd
+
+- name: update packages
+  package:
+    name: "*"
+    state: latest
+    update_cache: yes
+    autoclean: yes
+
+- name: install commons packages
+  package:
+    update_cache: yes
+    state: present
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - curl
+      - wget
+      - htop
+      - python3-minimal
+      - net-tools
+      - build-essential
+      - ca-certificates
+      - vim
+      - nfs-common
+      - rsyslog
+      - libvirt-clients
+      - sudo
+      - apt-transport-https
+      - gpg
+
+- name: remove commons packages
+  package:
+    update_cache: yes
+    state: absent
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - iptables-persistent
+
+- name: set-timezone America/Sao_Paulo
+  shell: timedatectl set-timezone America/Sao_Paulo
+  args:
+    chdir: $HOME
+    creates: timedatectl.log
+
+- name: put k8s modules templates
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0760
+  with_items:
+    - {
+        "src": "99-kubernetes-cri.conf.j2",
+        "dest": "/etc/sysctl.d/99-kubernetes-cri.conf",
+      }
+    - {
+        "src": "containerd.conf.j2",
+        "dest": "/etc/modules-load.d/containerd.conf",
+      }
+
+- name: modprobe overlay turn on
+  modprobe:
+    name: overlay
+    state: present
+
+- name: modprobe br_netfilter turn on
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: disable swapoff > swapoff.log
+  shell: swapoff -a
+  args:
+    chdir: $HOME
+    creates: swapoff.log
+
+- name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: "0"
+    state: present
+
+- name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: "1"
+    state: present
+
+- name: net.ipv4.ip_forward is set to 1
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
