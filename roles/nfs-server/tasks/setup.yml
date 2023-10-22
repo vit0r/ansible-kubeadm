@@ -1,7 +1,10 @@
-- name: install nfs-server
+- name: install pkgs
   package:
-    name: nfs-kernel-server
+    name: "{{ item }}"
     state: present
+  with_items:
+    - rsyslog
+    - nfs-kernel-server
 
 - name: create nfs directory
   file:
@@ -27,4 +30,7 @@
   systemd:
     state: restarted
     enabled: yes
-    name: nfs-kernel-server
+    name: "{{ item }}"
+  with_items:
+    - rsyslog
+    - nfs-kernel-server

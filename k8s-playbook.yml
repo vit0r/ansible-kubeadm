@@ -13,3 +13,13 @@
   roles:
     - { role: commons }
     - { role: nodes }
+
+- hosts: nfs_server
+  become_user: root
+  remote_user: debian
+  become: yes
+  vars:
+    nfs_path: /k8s
+    nfs_client_cidr: 192.168.124.0/24
+  roles:
+    - { role: nfs-server }
