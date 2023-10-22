@@ -42,9 +42,6 @@
       }
     - { "name": "hashicorp", "repo_url": "https://helm.releases.hashicorp.com" }
 
-- name: debug nfs-server ip
-  debbug: "{{ hostvars[groups['nfs_servers'][0]].ansible_host }}"
-
 - name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:
     name: nfs-subdir-external-provisioner
@@ -54,28 +51,11 @@
     wait: false
     values:
       storageClass.name: nfs
+      storageClass.defaultClass: true
       nfs:
-        server: "{{ hostvars[groups['nfs_servers'][0]].ansible_host }}"
+        server: "{{ hostvars[groups['nfs_servers'][0]].inventory_hostname }}"
         path: "{{ nfs_path }}"
       archiveOnDelete: true
-
-- name: wait for nfs-client initialize
-  pause:
-    minutes: 3
-
-- name: set nfs-client to default storageclass
-  shell: 'kubectl patch sc/nfs -p ''{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":true}}}'' > is-default-class.log'
-  args:
-    chdir: $HOME
-    creates: is-default-class.log
-
-- name: helm deploy kube-prometheus-stack
-  kubernetes.core.helm:
-    name: prometheus-stack
-    chart_ref: prometheus-community/kube-prometheus-stack
-    release_namespace: monitoring
-    create_namespace: true
-    wait: true
 
 - name: helm deploy loki-stack
   kubernetes.core.helm:
@@ -83,7 +63,7 @@
     chart_ref: grafana/loki-stack
     release_namespace: monitoring
     create_namespace: true
-    wait: true
+    wait: false
 
 - name: helm deploy cert-manager
   kubernetes.core.helm:
@@ -91,7 +71,7 @@
     chart_ref: jetstack/cert-manager
     release_namespace: cert-manager
     create_namespace: true
-    wait: true
+    wait: false
     set_values:
       - value: installCRDs=true
         value_type: string
@@ -102,7 +82,7 @@
     chart_ref: metallb/metallb
     release_namespace: metallb-system
     create_namespace: true
-    wait: true
+    wait: false
     set_values:
       - value: installCRDs=true
         value_type: string

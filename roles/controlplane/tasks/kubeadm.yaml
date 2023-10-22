@@ -43,3 +43,9 @@
     owner: "{{ ansible_ssh_user }}"
     group: root
     mode: 0660
+
+- name: taint use control-plane's to support pods
+  shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane- > taint_nodes_cp_remove.log
+  args:
+    chdir: $HOME
+    creates: taint_nodes_cp_remove.log

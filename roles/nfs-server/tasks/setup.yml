@@ -1,10 +1,31 @@
-- name: install pkgs
+- name: update packages
   package:
-    name: "{{ item }}"
+    name: "*"
+    state: latest
+    update_cache: yes
+    autoclean: yes
+
+- name: install commons packages
+  package:
+    update_cache: yes
     state: present
-  with_items:
-    - rsyslog
-    - nfs-kernel-server
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - nfs-kernel-server
+      - rsyslog
+      - curl
+      - wget
+      - htop
+      - python3-minimal
+      - net-tools
+      - build-essential
+      - ca-certificates
+      - vim
+      - libvirt-clients
+      - sudo
+      - apt-transport-https
+      - gpg
 
 - name: create nfs directory
   file:
