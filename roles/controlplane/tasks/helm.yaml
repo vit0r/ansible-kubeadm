@@ -41,6 +41,7 @@
         "repo_url": "https://kubernetes-sigs.github.io/metrics-server/",
       }
     - { "name": "hashicorp", "repo_url": "https://helm.releases.hashicorp.com" }
+    - { "name": "argo", "repo_url": "https://argoproj.github.io/argo-helm" }
 
 - name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:
@@ -48,22 +49,15 @@
     chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
     release_namespace: storage
     create_namespace: true
-    wait: false
+    wait: true
     values:
-      storageClass.name: nfs
-      storageClass.defaultClass: true
+      storageClass:
+        name: nfs
+        defaultClass: true
       nfs:
         server: "{{ hostvars[groups['nfs_servers'][0]].inventory_hostname }}"
         path: "{{ nfs_path }}"
       archiveOnDelete: true
-
-- name: helm deploy loki-stack
-  kubernetes.core.helm:
-    name: loki-stack
-    chart_ref: grafana/loki-stack
-    release_namespace: monitoring
-    create_namespace: true
-    wait: false
 
 - name: helm deploy cert-manager
   kubernetes.core.helm:
@@ -101,3 +95,64 @@
   args:
     chdir: $HOME
     creates: metallb.log
+
+- name: helm deply metrics-server
+  kubernetes.core.helm:
+    name: metrics-server
+    chart_ref: metrics-server/metrics-server
+    release_namespace: metrics-server
+    create_namespace: true
+    wait: false
+
+# - name: kubectl wait for metrics-server initialize
+#   shell: kubectl wait --namespace metrics-server --for=condition=ready pod --selector=app.kubernetes.io/name=metrics-server --timeout=90s
+
+- name: helm deploy ingress-nginx
+  kubernetes.core.helm:
+    name: ingress-nginx
+    chart_ref: ingress-nginx/ingress-nginx
+    release_namespace: ingress-nginx
+    create_namespace: true
+    wait: false
+    values:
+      controller:
+        config:
+          ssl-redirect: false
+        service:
+          externalTrafficPolicy: Local
+          type: LoadBalancer
+
+- name: helm deploy loki-stack
+  kubernetes.core.helm:
+    name: loki-stack
+    chart_ref: grafana/loki-stack
+    release_namespace: loki-stack
+    create_namespace: true
+    wait: false
+    values:
+      grafana:
+        enabled: true
+      prometheus:
+        enabled: true
+
+- name: helm deploy hashicorp tools
+  kubernetes.core.helm:
+    name: "{{ item }}"
+    chart_ref: "hashicorp/{{ item }}"
+    release_namespace: "{{ item }}"
+    create_namespace: true
+    wait: false
+  with_items:
+    - vault
+    - consul
+
+- name: helm deploy argo tools
+  kubernetes.core.helm:
+    name: "{{ item }}"
+    chart_ref: "argo/{{ item }}"
+    release_namespace: "{{ item }}"
+    create_namespace: true
+    wait: false
+  with_items:
+    - argo-cd
+    - argo-workflows
