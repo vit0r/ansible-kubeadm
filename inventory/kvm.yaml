@@ -8,6 +8,7 @@ all:
     helm_version: 3.13.1
     nfs_path: /k8s
     nfs_client_cidr: 192.168.124.0/24
+    metallb_loadbalancer_ip_range: 192.168.124.100-192.168.124.110
   children:
     controlplane:
       hosts:

@@ -89,11 +89,14 @@
 
 - name: put metallb template
   template:
-    src: metallb.j2
+    src: metallb.yaml.j2
     dest: /tmp/metallb.yaml
     mode: 0760
 
-- name: put metallb template
+- name: kubectl wait for metallb-system initialize
+  shell: kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app.kubernetes.io/name=metallb --timeout=90s
+
+- name: kubectl apply metallb IPAddressPool template
   shell: kubectl apply -f /tmp/metallb.yaml > metallb.log
   args:
     chdir: $HOME

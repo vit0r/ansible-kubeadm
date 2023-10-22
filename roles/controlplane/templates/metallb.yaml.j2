@@ -5,7 +5,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  - {{ lb_ip_from }}-{{ lb_ip_to }}
+  - {{ metallb_loadbalancer_ip_range }}
   autoAssign: true
 ---
 apiVersion: metallb.io/v1beta1
