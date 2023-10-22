@@ -42,18 +42,21 @@
       }
     - { "name": "hashicorp", "repo_url": "https://helm.releases.hashicorp.com" }
 
-- name: deploy nfs-subdir-external-provisioner with values
+- name: debug nfs-server ip
+  debbug: "{{ hostvars[groups['nfs_servers'][0]].ansible_host }}"
+
+- name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:
     name: nfs-subdir-external-provisioner
     chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
     release_namespace: storage
     create_namespace: true
-    wait: true
+    wait: false
     values:
       storageClass.name: nfs
       nfs:
-        server: "{{ nfs_server_ip }}"
-        path: "/k8s-data"
+        server: "{{ hostvars[groups['nfs_servers'][0]].ansible_host }}"
+        path: "{{ nfs_path }}"
       archiveOnDelete: true
 
 - name: wait for nfs-client initialize
