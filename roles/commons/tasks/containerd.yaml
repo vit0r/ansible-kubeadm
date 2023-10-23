@@ -30,12 +30,9 @@
 - name: replace SystemdCgroup to true
   shell: sed -i -e 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
 
-- name: reload services configs
-  systemd:
-    daemon_reload: yes
-
 - name: enable and restart containerd service
   systemd:
+    daemon_reload: yes
     name: containerd
     state: restarted
     enabled: yes
