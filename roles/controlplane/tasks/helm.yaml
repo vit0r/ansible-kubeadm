@@ -96,7 +96,7 @@
     chdir: $HOME
     creates: metallb.log
 
-- name: helm deply metrics-server
+- name: helm deploy metrics-server
   kubernetes.core.helm:
     name: metrics-server
     chart_ref: metrics-server/metrics-server
@@ -122,18 +122,43 @@
           externalTrafficPolicy: Local
           type: LoadBalancer
 
-- name: helm deploy loki-stack
+- name: helm deploy loki, grafana, prometheus and alertmanager
   kubernetes.core.helm:
-    name: loki-stack
-    chart_ref: grafana/loki-stack
-    release_namespace: loki-stack
+    name: "{{ item }}"
+    chart_ref: "grafana/{{ item }}"
+    release_namespace: observability
     create_namespace: true
-    wait: false
+    wait: true
     values:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        hosts:
+          - "{{  item }}.k8s.local"
       grafana:
         enabled: true
-      prometheus:
+        datasources:
+          datasources.yaml:
+            datasources:
+              - name: Loki
+                type: loki
+                url: http://loki-gateway.observability.svc.cluster.local
+                isDefault: true
+              - name: AlertManager
+                type: alertmanager
+                url: http://alertmanager.observability.svc.cluster.local
+                isDefault: false
+              - name: Prometheus
+                type: prometheus
+                url: http://prometheus.observability.svc.cluster.local
+                isDefault: false
+      minio:
         enabled: true
+      loki:
+        auth_enabled: false
+  with_items:
+    - loki
+    - grafana
 
 - name: helm deploy hashicorp tools
   kubernetes.core.helm:
@@ -141,7 +166,27 @@
     chart_ref: "hashicorp/{{ item }}"
     release_namespace: "{{ item }}"
     create_namespace: true
-    wait: false
+    wait: true
+    values:
+      csi:
+        enabled: true
+      ui:
+        enabled: true
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - host: "{{ item }}.k8s.local"
+              paths:
+                - /
+      server:
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - host: "{{ item }}.k8s.local"
+              paths:
+                - /
   with_items:
     - vault
     - consul
@@ -152,7 +197,16 @@
     chart_ref: "argo/{{ item }}"
     release_namespace: "{{ item }}"
     create_namespace: true
-    wait: false
+    wait: true
+    values:
+      server:
+        service:
+          type: LoadBalancer
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - "{{  item }}.k8s.local"
   with_items:
     - argo-cd
     - argo-workflows
