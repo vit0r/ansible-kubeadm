@@ -46,6 +46,7 @@
 - name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:
     name: nfs-subdir-external-provisioner
+    chart_version: "4.0.18"
     chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
     release_namespace: storage
     create_namespace: true
@@ -62,6 +63,7 @@
 - name: helm deploy cert-manager
   kubernetes.core.helm:
     name: cert-manager
+    chart_version: "v1.13.1"
     chart_ref: jetstack/cert-manager
     release_namespace: cert-manager
     create_namespace: true
@@ -73,6 +75,7 @@
 - name: helm deploy metallb
   kubernetes.core.helm:
     name: metallb
+    chart_version: "0.13.12"
     chart_ref: metallb/metallb
     release_namespace: metallb-system
     create_namespace: true
@@ -99,6 +102,7 @@
 - name: helm deploy metrics-server
   kubernetes.core.helm:
     name: metrics-server
+    chart_version: "3.11.0"
     chart_ref: metrics-server/metrics-server
     release_namespace: metrics-server
     create_namespace: true
@@ -110,6 +114,7 @@
 - name: helm deploy ingress-nginx
   kubernetes.core.helm:
     name: ingress-nginx
+    chart_version: "4.8.2"
     chart_ref: ingress-nginx/ingress-nginx
     release_namespace: ingress-nginx
     create_namespace: true
@@ -122,7 +127,22 @@
           externalTrafficPolicy: Local
           type: LoadBalancer
 
-- name: helm deploy loki, grafana, prometheus and alertmanager
+- name: helm deploy prometheus
+  kubernetes.core.helm:
+    name: prometheus
+    chart_ref: prometheus-community/prometheus
+    release_namespace: observability
+    create_namespace: true
+    wait: true
+    values:
+      server:
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - prometheus.k8s.local
+
+- name: helm deploy loki and grafana
   kubernetes.core.helm:
     name: "{{ item }}"
     chart_ref: "grafana/{{ item }}"
@@ -137,21 +157,21 @@
           - "{{  item }}.k8s.local"
       grafana:
         enabled: true
-        datasources:
-          datasources.yaml:
-            datasources:
-              - name: Loki
-                type: loki
-                url: http://loki-gateway.observability.svc.cluster.local
-                isDefault: true
-              - name: AlertManager
-                type: alertmanager
-                url: http://alertmanager.observability.svc.cluster.local
-                isDefault: false
-              - name: Prometheus
-                type: prometheus
-                url: http://prometheus.observability.svc.cluster.local
-                isDefault: false
+      datasources:
+        datasources.yaml:
+          datasources:
+            - name: Loki
+              type: loki
+              url: http://loki-gateway.observability.svc.cluster.local
+              isDefault: true
+            - name: AlertManager
+              type: alertmanager
+              url: http://prometheus-alertmanager.observability.svc.cluster.local
+              isDefault: false
+            - name: Prometheus
+              type: prometheus
+              url: http://prometheus-server.observability.svc.cluster.local
+              isDefault: false
       minio:
         enabled: true
       loki:
