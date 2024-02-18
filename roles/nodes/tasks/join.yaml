@@ -5,7 +5,11 @@
     creates: kubeadmreset.log
 
 - name: join node to cluster
-  shell: "{{ hostvars[groups['controlplane'][0]]['join_command'] }} > joincommand.log"
-  args:
-    chdir: $HOME
-    creates: joincommand.log
+  block:
+    - name: join
+      shell: "{{ hostvars[groups['controlplane'][0]]['join_command'] }} > joincommand.log"
+      args:
+        chdir: $HOME
+        creates: joincommand.log
+    - name: reboot node
+      reboot:
