@@ -21,6 +21,11 @@
     name: argo
     repo_url: https://argoproj.github.io/argo-helm
 
+- name: add repo nfs provisioner
+  kubernetes.core.helm_repository:
+    name: nfs-subdir-external-provisioner
+    repo_url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+
 - name: helm deploy argo tools
   kubernetes.core.helm:
     name: "{{ item }}"
@@ -30,3 +35,20 @@
     wait: false
   with_items:
     - argo-cd
+
+- name: deploy nfs-subdir-external-provisioner
+  kubernetes.core.helm:
+    name: nfs-subdir-external-provisioner
+    chart_version: "4.0.18"
+    chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+    release_namespace: storage
+    create_namespace: true
+    wait: true
+    values:
+      storageClass:
+        name: nfs
+        defaultClass: true
+      nfs:
+        server: "{{ hostvars[groups['nfs_servers'][0]].inventory_hostname }}"
+        path: "{{ nfs_path }}"
+      archiveOnDelete: true
