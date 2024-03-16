@@ -1,5 +1,4 @@
 - include_tasks: "kubeadm.yaml"
 - include_tasks: "flannel.yaml"
 - include_tasks: "token.yaml"
-- include_tasks: "k9s.yaml"
 - include_tasks: "helm.yaml"
