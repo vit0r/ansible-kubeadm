@@ -15,18 +15,3 @@
     owner: "{{ ansible_ssh_user }}"
     group: root
     mode: "0770"
-
-- name: add repo argo-helm
-  kubernetes.core.helm_repository:
-    name: argo
-    repo_url: https://argoproj.github.io/argo-helm
-
-- name: helm deploy argo tools
-  kubernetes.core.helm:
-    name: "{{ item }}"
-    chart_ref: "argo/{{ item }}"
-    release_namespace: "{{ item }}"
-    create_namespace: true
-    wait: false
-  with_items:
-    - argo-cd

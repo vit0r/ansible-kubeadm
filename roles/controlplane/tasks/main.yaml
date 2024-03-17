@@ -2,3 +2,4 @@
 - include_tasks: "flannel.yaml"
 - include_tasks: "token.yaml"
 - include_tasks: "helm.yaml"
+- include_tasks: "argocd.yaml"
