@@ -7,8 +7,10 @@
   kubernetes.core.helm:
     name: "{{ item }}"
     chart_ref: "argo/{{ item }}"
-    create_namespace: true
     release_namespace: "{{ item }}"
+    create_namespace: true
+    update_repo_cache: true
+    force: true
     wait: true
     values:
       configs:
