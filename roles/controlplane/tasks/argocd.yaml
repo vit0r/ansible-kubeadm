@@ -8,6 +8,7 @@
     name: "{{ item }}"
     chart_ref: "argo/{{ item }}"
     create_namespace: true
+    release_namespace: "{{ item }}"
     wait: true
     values:
       configs:
