@@ -1,0 +1,20 @@
+- name: install helm
+  block:
+    - name: download helm
+      vars:
+        helm_version: v3.14.3
+      unarchive:
+        src: https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz
+        dest: /tmp/
+        remote_src: yes
+        owner: "{{ ansible_ssh_user }}"
+        group: root
+        mode: "0770"
+    - name: copy helm bin
+      copy:
+        src: /tmp/linux-amd64/helm
+        dest: /usr/local/bin/helm
+        remote_src: yes
+        owner: "{{ ansible_ssh_user }}"
+        group: root
+        mode: "0770"
