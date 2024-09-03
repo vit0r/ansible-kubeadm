@@ -1,21 +1,20 @@
-# - hosts: nfs_servers
-#   become_user: root
-#   remote_user: debian
-#   become: yes
-#   roles:
-#     - { role: nfs-server }
-
 - hosts: controlplane
-  become_user: root
-  remote_user: debian
+  become_user: "{{ become_user }}"
+  remote_user: "{{ remote_user }}"
   become: yes
   roles:
     - { role: commons }
     - { role: controlplane }
-# - hosts: nodes
-#   become_user: root
-#   remote_user: debian
-#   become: yes
-#   roles:
-#     - { role: commons }
-#     - { role: nodes }
+- hosts: nodes
+  become_user: "{{ become_user }}"
+  remote_user: "{{ remote_user }}"
+  become: yes
+  roles:
+    - { role: commons }
+    - { role: nodes }
+- hosts: nfs_servers
+  become_user: "{{ become_user }}"
+  remote_user: "{{ remote_user }}"
+  become: yes
+  roles:
+    - { role: nfs_server }
