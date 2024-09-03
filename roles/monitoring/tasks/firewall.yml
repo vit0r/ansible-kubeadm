@@ -1,0 +1,10 @@
+- name: allow access to grafana web UI ports
+  firewalld:
+    port: 3000/tcp
+    permanent: yes
+    state: enabled
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted

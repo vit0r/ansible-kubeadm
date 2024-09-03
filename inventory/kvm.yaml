@@ -7,10 +7,11 @@ all:
     runc_version: 1.1.13
     cni_plugins_version: 1.5.1
     k9s_version: 0.32.5
-    helm_version: 3.15.3
+    helm_version: 3.15.4
     nfs_path: /k8s
     nfs_client_cidr: 192.168.124.0/24
     metallb_loadbalancer_ip_range: 192.168.124.100-192.168.124.110
+    prometheus_version: 2.53.1
   children:
     controlplane:
       hosts:
@@ -22,3 +23,6 @@ all:
     nfs_servers:
       hosts:
         192.168.124.210:
+    monitoring_servers:
+      hosts:
+        192.168.124.5:

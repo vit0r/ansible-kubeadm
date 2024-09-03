@@ -2,7 +2,7 @@
   block:
     - name: download helm
       unarchive:
-        src: https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz
+        src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
         dest: /tmp/
         remote_src: yes
         owner: "{{ ansible_ssh_user }}"
@@ -22,6 +22,11 @@
     name: "nfs-subdir-external-provisioner"
     repo_url: "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner"
 
+- name: add repo helm chart prometheus-community
+  kubernetes.core.helm_repository:
+    name: "prometheus-community"
+    repo_url: " https://prometheus-community.github.io/helm-charts"
+
 - name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:
     name: nfs-subdir-external-provisioner
@@ -29,7 +34,7 @@
     chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
     release_namespace: storage
     create_namespace: true
-    wait: true
+    wait: false
     values:
       storageClass:
         name: nfs
@@ -38,3 +43,12 @@
         server: "{{ hostvars[groups['nfs_servers'][0]].inventory_hostname }}"
         path: "{{ nfs_path }}"
       archiveOnDelete: true
+
+- name: deploy nfs-subdir-external-provisioner
+  kubernetes.core.helm:
+    name: prometheus-node-exporter
+    chart_version: "4.39.0"
+    chart_ref: prometheus-community/prometheus-node-exporter
+    release_namespace: monitoring
+    create_namespace: true
+    wait: false

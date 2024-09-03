@@ -1,20 +1,26 @@
-- hosts: controlplane
+# - hosts: nfs_servers
+#   become_user: "{{ become_user }}"
+#   remote_user: "{{ remote_user }}"
+#   become: yes
+#   roles:
+#     - { role: nfs_server }
+# - hosts: controlplane
+#   become_user: "{{ become_user }}"
+#   remote_user: "{{ remote_user }}"
+#   become: yes
+#   roles:
+#     - { role: commons }
+#     - { role: controlplane }
+# - hosts: nodes
+#   become_user: "{{ become_user }}"
+#   remote_user: "{{ remote_user }}"
+#   become: yes
+#   roles:
+#     - { role: commons }
+#     - { role: nodes }
+- hosts: monitoring_servers
   become_user: "{{ become_user }}"
-  remote_user: "{{ remote_user }}"
+  remote_user: "cloud-user"
   become: yes
   roles:
-    - { role: commons }
-    - { role: controlplane }
-- hosts: nodes
-  become_user: "{{ become_user }}"
-  remote_user: "{{ remote_user }}"
-  become: yes
-  roles:
-    - { role: commons }
-    - { role: nodes }
-- hosts: nfs_servers
-  become_user: "{{ become_user }}"
-  remote_user: "{{ remote_user }}"
-  become: yes
-  roles:
-    - { role: nfs_server }
+    - { role: monitoring }

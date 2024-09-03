@@ -1,0 +1,71 @@
+- name: create prometheus system group and user
+  block:
+    - name: create group prometheus
+      group:
+        name: prometheus
+        system: yes
+    - name: create group prometheus
+      user:
+        name: prometheus
+        system: yes
+        group: prometheus
+
+- name: create prometheus directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: prometheus
+    group: root
+  with_items:
+    - /var/lib/prometheus
+    - /etc/prometheus/rules
+    - /etc/prometheus/rules.d
+    - /etc/prometheus/files_sd
+    - /var/run/prometheus
+
+- name: download and extract prometheus
+  unarchive:
+    src: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
+    dest: /opt
+    owner: prometheus
+    group: root
+    remote_src: yes
+
+- name: install prometheus binaries
+  file:
+    state: link
+    force: true
+    src: "/opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: prometheus
+    group: root
+    mode: a+x
+  with_items:
+    - prometheus
+    - promtool
+
+- name: promethes config
+  file:
+    state: link
+    force: true
+    src: "/opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+    dest: "/etc/prometheus/{{ item }}"
+    owner: prometheus
+    group: root
+  with_items:
+    - prometheus.yaml
+
+- name: create prometheus.service
+  template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+    mode: 0770
+    owner: prometheus
+    group: root
+
+- name: restart prometheus
+  service:
+    name: prometheus
+    state: restarted
+    enabled: yes
+    daemon_reload: true

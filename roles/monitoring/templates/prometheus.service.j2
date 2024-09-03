@@ -1,0 +1,15 @@
+[Unit]
+Description=prometheus-service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/prometheus
+StandardOutput=append:/var/logs/prometheus.log
+StandardError=inherit
+PIDFile=/var/run/prometheus/prometheus.pid
+User=prometheus
+Group=root
+
+[Install]
+WantedBy=multi-user.target
