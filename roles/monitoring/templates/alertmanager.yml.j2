@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ["instance"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: "discordCluster"
+
+receivers:
+  - name: "discordCluster"
+    webhook_configs:
+      - url: "{{DISCORD_CLUSTER_WEBHOOK_URL}}"
+        send_resolved: true

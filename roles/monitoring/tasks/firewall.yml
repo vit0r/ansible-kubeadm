@@ -1,8 +1,12 @@
-- name: allow access to grafana web UI ports
+- name: allow access to ports
   firewalld:
-    port: 3000/tcp
+    port: "{{item}}/tcp"
     permanent: yes
     state: enabled
+  with_items:
+    - 3000
+    - 9090
+    - 9093
 
 - name: restart firewalld
   service:

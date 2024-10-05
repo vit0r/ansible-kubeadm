@@ -25,7 +25,7 @@
 
 - name: download and extract prometheus
   unarchive:
-    src: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
+    src: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-{{prometheus_arch}}.tar.gz
     dest: /opt
     owner: prometheus
     group: root
@@ -35,7 +35,7 @@
   file:
     state: link
     force: true
-    src: "/opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+    src: "/opt/prometheus-{{ prometheus_version }}.linux-{{prometheus_arch}}/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     owner: prometheus
     group: root
@@ -44,16 +44,16 @@
     - prometheus
     - promtool
 
-- name: promethes config
-  file:
-    state: link
-    force: true
-    src: "/opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
-    dest: "/etc/prometheus/{{ item }}"
+- name: create prometheus.yml
+  vars:
+    control_planes: "{{ hostvars[groups['controlplane']] }}"
+    nodes: "{{ hostvars[groups['nodes']] }}"
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    mode: 0770
     owner: prometheus
     group: root
-  with_items:
-    - prometheus.yaml
 
 - name: create prometheus.service
   template:
@@ -62,6 +62,16 @@
     mode: 0770
     owner: prometheus
     group: root
+
+- name: alermanager rules
+  template:
+    src: templates/rules.d/{{item}}.rules.j2
+    dest: /etc/prometheus/rules.d/{{item}}.rules
+    mode: 0770
+    owner: prometheus
+    group: alertmanager
+  with_items:
+    - infraestrutura
 
 - name: restart prometheus
   service:

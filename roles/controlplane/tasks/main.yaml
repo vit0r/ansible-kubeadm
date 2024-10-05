@@ -3,3 +3,4 @@
 - include_tasks: "token.yaml"
 - include_tasks: "helm.yaml"
 - include_tasks: "argocd.yaml"
+- include_tasks: "k9s.yaml"

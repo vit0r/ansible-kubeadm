@@ -21,11 +21,13 @@
   kubernetes.core.helm_repository:
     name: "nfs-subdir-external-provisioner"
     repo_url: "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner"
+    force_update: yes
 
 - name: add repo helm chart prometheus-community
   kubernetes.core.helm_repository:
     name: "prometheus-community"
     repo_url: " https://prometheus-community.github.io/helm-charts"
+    force_update: yes
 
 - name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:

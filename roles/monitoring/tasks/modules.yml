@@ -1,0 +1,14 @@
+- name: install ansible
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ansible
+
+- name: install ansible-galaxy collection module
+  shell: "ansible-galaxy collection install {{ item }} > {{ item }}.log"
+  args:
+    chdir: $HOME
+    creates: "{{ item }}.log"
+  with_items:
+    - grafana.grafana

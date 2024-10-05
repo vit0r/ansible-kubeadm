@@ -1,0 +1,10 @@
+- name: download k9s
+  vars:
+    k9s_version: 0.32.5
+  unarchive:
+    src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+    owner: "{{ ansible_ssh_user }}"
+    group: root
+    mode: "0770"

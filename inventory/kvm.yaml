@@ -12,17 +12,19 @@ all:
     nfs_client_cidr: 192.168.124.0/24
     metallb_loadbalancer_ip_range: 192.168.124.100-192.168.124.110
     prometheus_version: 2.53.1
+    prometheus_arch: amd64
+    alertmanager_version: 0.27.0
   children:
     controlplane:
       hosts:
-        192.168.124.191:
+        192.168.124.239:
     nodes:
       hosts:
-        192.168.124.250:
-        192.168.124.86:
+        192.168.124.67:
+        192.168.124.205:
     nfs_servers:
       hosts:
-        192.168.124.210:
+        192.168.124.139:
     monitoring_servers:
       hosts:
-        192.168.124.5:
+        192.168.124.6:
