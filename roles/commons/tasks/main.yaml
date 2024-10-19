@@ -3,3 +3,4 @@
 - include_tasks: "runc.yaml"
 - include_tasks: "containernetworking.yaml"
 - include_tasks: "kubeadm.yaml"
+- include_tasks: "nerdctl.yaml"

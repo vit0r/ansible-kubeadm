@@ -8,6 +8,7 @@ all:
     cni_plugins_version: 1.5.1
     k9s_version: 0.32.5
     helm_version: 3.15.4
+    nerdctl_version: 0.22.2
     nfs_path: /k8s
     nfs_client_cidr: 192.168.124.0/24
     metallb_loadbalancer_ip_range: 192.168.124.100-192.168.124.110
