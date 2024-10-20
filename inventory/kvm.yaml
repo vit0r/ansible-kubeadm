@@ -3,11 +3,11 @@ all:
     remote_user: debian
     become_user: root
     kubeadm_version: 1.31
-    containerd_version: 1.7.20
-    runc_version: 1.1.13
-    cni_plugins_version: 1.5.1
+    containerd_version: 1.7.23
+    runc_version: 1.1.15
+    cni_plugins_version: 1.6.0
     k9s_version: 0.32.5
-    helm_version: 3.15.4
+    helm_version: 3.16.0
     nerdctl_version: 0.22.2
     nfs_path: /k8s
     nfs_client_cidr: 192.168.124.0/24

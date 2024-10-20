@@ -1,22 +1,22 @@
-- name: check if kubernetes-apt-keyring.gpg exists
+- name: create keyrings directory
+  file:
+    path: /etc/apt/keyrings/
+    state: directory
+    mode: 755
+    owner: root
+    group: cpd
+
+- name: check if /etc/apt/keyrings/kubernetes-apt-keyring-{{kubeadm_version}}.gpg exists
   stat:
-    path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    path: /etc/apt/keyrings/kubernetes-apt-keyring-{{kubeadm_version}}.gpg
   register: kubernetes_gpg_key
 
-- name: remove keyrings directory
-  file:
-    state: directory
-    path: /etc/apt/keyrings/
-  when: kubernetes_gpg_key.stat.exists == False
-
 - name: add kubernetes_gpg_key
-  shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubeadm_version }}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{kubeadm_version}}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring-{{kubeadm_version}}.gpg
   when: kubernetes_gpg_key.stat.exists == False
 
 - name: add kubernetes-apt-keyring
-  apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubeadm_version }}/deb/ /"
-    state: present
+  shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring-{{kubeadm_version}}.gpg] https://pkgs.k8s.io/core:/stable:/v{{kubeadm_version}}/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes-{{kubeadm_version}}.list
   when: kubernetes_gpg_key.stat.exists == False
 
 - name: install kubernetes bootstrap pkgs
@@ -28,9 +28,11 @@
     - kubelet={{ kubeadm_version }}*
     - kubeadm={{ kubeadm_version }}*
     - kubectl={{ kubeadm_version }}*
+  when: kubernetes_gpg_key.stat.exists == False
 
 - name: apt mark hold kubernetes version
   shell: apt-mark hold kubelet kubeadm kubectl >> kubernetes-hold.log
   args:
     chdir: $HOME
     creates: kubernetes-hold.log
+  when: kubernetes_gpg_key.stat.exists == False

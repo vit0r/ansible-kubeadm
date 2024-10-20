@@ -33,6 +33,7 @@
       - gpg
       - locales-all
       - qemu-guest-agent
+      - socat
 
 - name: remove commons packages
   package:
