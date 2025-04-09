@@ -6,5 +6,5 @@
     dest: /usr/local/bin/
     remote_src: yes
     owner: "{{ ansible_ssh_user }}"
-    group: root
+    group: "{{become_user}}"
     mode: "0770"

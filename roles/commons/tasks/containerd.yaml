@@ -9,8 +9,8 @@
     path: /etc/containerd
     state: directory
     mode: 0766
-    owner: root
-    group: root
+    owner: "{{become_user}}"
+    group: "{{become_user}}"
 
 - name: download containerd service
   get_url:

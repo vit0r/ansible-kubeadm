@@ -6,15 +6,15 @@
         dest: /tmp/
         remote_src: yes
         owner: "{{ ansible_ssh_user }}"
-        group: root
+        group: "{{become_user}}"
         mode: "0770"
     - name: copy helm bin
       copy:
         src: /tmp/linux-amd64/helm
         dest: /usr/local/bin/helm
         remote_src: yes
-        owner: "{{ ansible_ssh_user }}"
-        group: root
+        owner: "{{become_user}}"
+        group: "{{become_user}}"
         mode: "0770"
 
 - name: add repo helm chart nfs-subdir-external-provisioner

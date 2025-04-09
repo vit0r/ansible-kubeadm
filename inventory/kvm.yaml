@@ -1,5 +1,6 @@
 all:
   vars:
+    kube_api_dns: k8sapi.local
     remote_user: debian
     become_user: root
     kubeadm_version: 1.31

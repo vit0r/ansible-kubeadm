@@ -39,8 +39,8 @@
   template:
     src: exports.j2
     dest: /etc/exports
-    owner: root
-    group: root
+    owner: "{{become_user}}"
+    group: "{{become_user}}"
     mode: 0770
     backup: yes
 

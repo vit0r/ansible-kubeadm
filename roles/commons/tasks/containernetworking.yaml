@@ -3,8 +3,8 @@
     path: /opt/cni/bin
     state: directory
     mode: 0766
-    owner: root
-    group: root
+    owner: "{{become_user}}"
+    group: "{{become_user}}"
 
 - name: download cni plugins
   unarchive:

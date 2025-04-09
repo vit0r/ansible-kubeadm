@@ -3,8 +3,8 @@
     path: /etc/apt/keyrings/
     state: directory
     mode: 755
-    owner: root
-    group: cpd
+    owner: "{{become_user}}"
+    group: "{{remote_user}}"
 
 - name: check if /etc/apt/keyrings/kubernetes-apt-keyring-{{kubeadm_version}}.gpg exists
   stat:

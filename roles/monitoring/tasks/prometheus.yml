@@ -15,7 +15,7 @@
     path: "{{ item }}"
     state: directory
     owner: prometheus
-    group: root
+    group: "{{become_user}}"
   with_items:
     - /var/lib/prometheus
     - /etc/prometheus/rules
@@ -28,7 +28,7 @@
     src: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-{{prometheus_arch}}.tar.gz
     dest: /opt
     owner: prometheus
-    group: root
+    group: "{{become_user}}"
     remote_src: yes
 
 - name: install prometheus binaries
@@ -38,7 +38,7 @@
     src: "/opt/prometheus-{{ prometheus_version }}.linux-{{prometheus_arch}}/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     owner: prometheus
-    group: root
+    group: "{{become_user}}"
     mode: a+x
   with_items:
     - prometheus
@@ -53,7 +53,7 @@
     dest: /etc/prometheus/prometheus.yml
     mode: 0770
     owner: prometheus
-    group: root
+    group: "{{become_user}}"
 
 - name: create prometheus.service
   template:
@@ -61,7 +61,7 @@
     dest: /etc/systemd/system/prometheus.service
     mode: 0770
     owner: prometheus
-    group: root
+    group: "{{become_user}}"
 
 - name: alermanager rules
   template:
