@@ -1,0 +1,32 @@
+- name: install python3-kubernetes
+  package:
+    update_cache: yes
+    state: present
+    name: python3-kubernetes
+
+- name: create a IPAddressPool object
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: default
+        namespace: metallb-system
+      spec:
+        addresses:
+          - "{{metallb_loadbalancer_ip_range}}"
+        autoAssign: true
+        allow-icmp: true
+- name: create a L2Advertisement object
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: default
+        namespace: metallb-system
+      spec:
+        ipAddressPools:
+          - default

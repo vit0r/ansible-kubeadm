@@ -1,0 +1,11 @@
+groups:
+- name: pod-alerts
+  rules:
+  - alert: PodNotRunning
+    expr: kube_pod_status_phase{pod="*", namespace="*", phase!="Running"} == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Pod {{ $labels.pod }} is not running"
+      description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not in Running state for more than 5 minutes."

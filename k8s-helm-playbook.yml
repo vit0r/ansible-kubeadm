@@ -1,6 +1,6 @@
-- hosts: monitoring_servers
+- hosts: controlplane
   become_user: "{{ become_user }}"
   remote_user: "{{ remote_user }}"
   become: yes
   roles:
-    - { role: monitoring }
+    - { role: helm }

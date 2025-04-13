@@ -46,8 +46,8 @@
 
 - name: create prometheus.yml
   vars:
-    control_planes: "{{ hostvars[groups['controlplane']] }}"
-    nodes: "{{ hostvars[groups['nodes']] }}"
+    controlplanes: "{{ groups['controlplane'] }}"
+    nodes: "{{ groups['nodes'] }}"
   template:
     src: prometheus.yml.j2
     dest: /etc/prometheus/prometheus.yml
@@ -71,7 +71,7 @@
     owner: prometheus
     group: alertmanager
   with_items:
-    - infraestrutura
+    - pod
 
 - name: restart prometheus
   service:

@@ -4,13 +4,29 @@
     use: systemd
 
 - name: SO update
-  yum:
+  package:
     name: "*"
     state: latest
 
 - name: install commons
-  yum:
+  package:
     name: "{{ item }}"
     state: present
   with_items:
-    - yum-utils
+    - curl
+    - wget
+    - htop
+    - python3-minimal
+    - net-tools
+    - build-essential
+    - ca-certificates
+    - vim
+    - nfs-common
+    - rsyslog
+    - libvirt-clients
+    - sudo
+    - apt-transport-https
+    - gpg
+    - locales-all
+    - qemu-guest-agent
+    - socat

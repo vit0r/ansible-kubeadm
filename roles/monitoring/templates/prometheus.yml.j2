@@ -6,7 +6,7 @@ scrape_configs:
       - targets: ['localhost:9090']
   - job_name: 'control-planes'
     static_configs:
-      - targets: {{ control_planes }}
+      - targets: {{ controlplanes }}
   - job_name: 'nodes'
     static_configs:
       - targets: {{ nodes }}

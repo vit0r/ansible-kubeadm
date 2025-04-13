@@ -13,7 +13,8 @@ all:
     nfs_path: /k8s
     nfs_client_cidr: 192.168.50.0/24
     metallb_loadbalancer_ip_range: 192.168.50.250-192.168.50.251
-    prometheus_version: 2.53.1
+    prometheus_version: 2.53.4
+    prometheus_arch: amd64
     alertmanager_version: 0.27.0
   children:
     controlplane:
@@ -22,3 +23,10 @@ all:
     nodes:
       hosts:
         192.168.50.143:
+        192.168.50.144:
+    nfs_servers:
+      hosts:
+        192.168.50.145:
+    monitoring_servers:
+      hosts:
+        192.168.50.146:
