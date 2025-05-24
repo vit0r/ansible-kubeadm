@@ -18,8 +18,8 @@ ansible-playbook k8s-controlplane-playbook.yml
 ansible-playbook k8s-node-playbook.yml
 ```
 
-## create monitoring
+## setup metallb
 
 ```console
-ansible-playbook k8s-monitoring-playbook.yml
+ansible-playbook k8s-metallb-playbook.yml
 ```

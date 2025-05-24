@@ -24,12 +24,8 @@ all:
       hosts:
         192.168.50.32:
         192.168.50.33:
-    nfs_servers:
-      hosts:
         192.168.50.34:
-    monitoring_servers:
-      hosts:
         192.168.50.35:
-    dns_servers:
+    nfs_servers:
       hosts:
         192.168.50.36:
