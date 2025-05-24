@@ -3,7 +3,7 @@ all:
     kube_api_dns: otaconpf.ddns.net
     remote_user: debian
     become_user: root
-    kubeadm_version: "1.31"
+    kubeadm_version: "1.33"
     containerd_version: "1.7.23"
     runc_version: "1.1.15"
     cni_plugins_version: "1.6.0"
@@ -12,21 +12,24 @@ all:
     nerdctl_version: "0.22.2"
     nfs_path: /k8s
     nfs_client_cidr: 192.168.50.0/24
-    metallb_loadbalancer_ip_range: 192.168.50.250-192.168.50.251
+    metallb_loadbalancer_ip_range: 192.168.50.50-192.168.50.51
     prometheus_version: 2.53.4
     prometheus_arch: amd64
     alertmanager_version: 0.27.0
   children:
     controlplane:
       hosts:
-        192.168.50.142:
+        192.168.50.31:
     nodes:
       hosts:
-        192.168.50.143:
-        192.168.50.144:
+        192.168.50.32:
+        192.168.50.33:
     nfs_servers:
       hosts:
-        192.168.50.145:
+        192.168.50.34:
     monitoring_servers:
       hosts:
-        192.168.50.146:
+        192.168.50.35:
+    dns_servers:
+      hosts:
+        192.168.50.36:

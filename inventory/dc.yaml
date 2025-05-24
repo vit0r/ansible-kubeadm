@@ -15,14 +15,18 @@ all:
     metallb_loadbalancer_ip_range: 192.168.1.24-192.168.1.25
     prometheus_version: 2.53.1
     alertmanager_version: 0.27.0
+    prometheus_arch: amd64
   children:
     controlplane:
       hosts:
         192.168.1.20:
     nodes:
       hosts:
-        # 192.168.1.21:
-        # 192.168.1.22:
+        192.168.1.21:
+        192.168.1.22:
         192.168.1.23:
-        # 192.168.1.31:
-        # 192.168.1.32:
+        192.168.1.31:
+        192.168.1.32:
+    monitoring_servers:
+      hosts:
+        192.168.1.146:

@@ -1,6 +1,0 @@
-- include_tasks: "commons.yml"
-# - include_tasks: "firewall.yml"
-# - include_tasks: "modules.yml"
-- include_tasks: "alertmanager.yml"
-- include_tasks: "prometheus.yml"
-- include_tasks: "grafana.yml"

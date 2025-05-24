@@ -90,6 +90,13 @@
     release_namespace: metrics-server
     create_namespace: true
     wait: false
+    values:
+      defaultArgs:
+        - --cert-dir=/tmp
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
+        - --kubelet-insecure-tls
 
 - name: add repo helm chart kube-state-metrics
   kubernetes.core.helm_repository:
@@ -141,11 +148,6 @@
           "users.session.duration": "48h"
           "admin.enabled": true
           url: http://argocd.local
-# - name: add repo helm chart grafana
-#   kubernetes.core.helm_repository:
-#     name: grafana
-#     repo_url: "https://grafana.github.io/helm-charts"
-#     force_update: yes
 
 # - name: deploy loki
 #   kubernetes.core.helm:
@@ -182,7 +184,7 @@
 - name: deploy ingress-nginx
   kubernetes.core.helm:
     name: ingress-nginx
-    chart_version: "4.12.1"
+    chart_version: "4.12.2"
     chart_ref: ingress-nginx/ingress-nginx
     release_namespace: ingress-nginx
     create_namespace: true
@@ -192,3 +194,18 @@
         service:
           loadBalancerIP: "{{metallb_loadbalancer_ip_range.split('-')[0]}}"
           externalTrafficPolicy: "Local"
+# - name: add repo helm chart strimzi
+#   kubernetes.core.helm_repository:
+#     name: strimzi
+#     repo_url: "https://strimzi.io/charts/"
+#     force_update: yes
+
+# - name: deploy strimzi-kafka-operator
+#   kubernetes.core.helm:
+#     name: strimzi
+#     chart_version: "0.46.0"
+#     chart_ref: strimzi/strimzi-kafka-operator
+#     release_namespace: kafka
+#     create_namespace: true
+#     wait: true
+#     force: yes

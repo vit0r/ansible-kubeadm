@@ -18,6 +18,7 @@
           - "{{metallb_loadbalancer_ip_range}}"
         autoAssign: true
         allow-icmp: true
+        avoidBuggyIPs: false
 - name: create a L2Advertisement object
   kubernetes.core.k8s:
     state: present
