@@ -34,6 +34,8 @@
       - locales-all
       - qemu-guest-agent
       - socat
+      - git
+      - procps
 
 - name: remove commons packages
   package:
@@ -88,6 +90,25 @@
     - { "name": "net.bridge.bridge-nf-call-ip6tables", "value": "0" }
     - { "name": "net.bridge.bridge-nf-call-iptables", "value": "1" }
     - { "name": "net.ipv4.ip_forward", "value": "1" }
+
+- name: set the maximum number of open file handles in the system
+  lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{item}}"
+    state: present
+    create: yes
+  with_items:
+    - "* soft nofile 65536"
+    - "* hard nofile 65536"
+
+- name: close transparent large page
+  shell: "{{item}}"
+  args:
+    chdir: $HOME
+    creates: madvise.log
+  with_items:
+    - "echo madvise > /sys/kernel/mm/transparent_hugepage/enabled"
+    - "echo madvise > /sys/kernel/mm/transparent_hugepage/defrag"
 
 - name: enable and restart qemu-guest-agent
   systemd:

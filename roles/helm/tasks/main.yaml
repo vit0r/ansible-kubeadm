@@ -1,3 +1,9 @@
+- name: install python3-kubernetes
+  package:
+    update_cache: yes
+    state: present
+    name: python3-kubernetes
+
 - name: install helm
   block:
     - name: download helm
@@ -21,7 +27,7 @@
   kubernetes.core.helm_repository:
     name: jetstack
     repo_url: "https://charts.jetstack.io"
-    force_update: yes
+    force_update: true
 
 - name: deploy cert-manager
   kubernetes.core.helm:
@@ -30,7 +36,7 @@
     chart_ref: jetstack/cert-manager
     release_namespace: cert-manager
     create_namespace: true
-    wait: false
+    wait: true
     values:
       installCRDs: true
       prometheus:
@@ -38,11 +44,49 @@
       webhook:
         timeoutSeconds: 4
 
+- name: create cluster issuer letsencrypt-nginx nginx
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-nginx-nginx
+      spec:
+        acme:
+          email: jonasdbz9@gmail.com
+          privateKeySecretRef:
+            name: letsencrypt-nginx-nginx
+          server: https://acme-v02.api.letsencrypt-nginx.org/directory
+          solvers:
+            - http01:
+                ingress:
+                  class: nginx
+
+- name: create cluster issuer letsencrypt-traefik
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-traefik
+      spec:
+        acme:
+          email: jonasdbz9@gmail.com
+          privateKeySecretRef:
+            name: letsencrypt-traefik
+          server: https://acme-v02.api.letsencrypt-nginx.org/directory
+          solvers:
+            - http01:
+                ingress:
+                  class: traefik
+
 - name: add repo helm chart nfs-subdir-external-provisioner
   kubernetes.core.helm_repository:
     name: "nfs-subdir-external-provisioner"
     repo_url: "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner"
-    force_update: yes
+    force_update: true
 
 - name: deploy nfs-subdir-external-provisioner
   kubernetes.core.helm:
@@ -61,108 +105,55 @@
         path: "{{ nfs_path }}"
       archiveOnDelete: true
 
-- name: add repo helm chart prometheus-community
+- name: add repo argo-helm
   kubernetes.core.helm_repository:
-    name: "prometheus-community"
-    repo_url: "https://prometheus-community.github.io/helm-charts"
-    force_update: yes
+    name: argo
+    repo_url: https://argoproj.github.io/argo-helm
 
-- name: deploy prometheus-node-exporter
+- name: helm deploy argo
   kubernetes.core.helm:
-    name: prometheus-node-exporter
-    chart_version: "4.39.0"
-    chart_ref: prometheus-community/prometheus-node-exporter
-    release_namespace: prometheus
+    name: "argocd"
+    chart_ref: "argo/argo-cd"
+    release_namespace: "argocd"
     create_namespace: true
-    wait: false
-
-- name: add repo helm chart metrics-server
-  kubernetes.core.helm_repository:
-    name: "metrics-server"
-    repo_url: "https://kubernetes-sigs.github.io/metrics-server/"
-    force_update: yes
-
-- name: deploy metrics-server
-  kubernetes.core.helm:
-    name: metrics-server
-    chart_version: "3.12.2"
-    chart_ref: metrics-server/metrics-server
-    release_namespace: metrics-server
-    create_namespace: true
+    update_repo_cache: true
+    force: true
     wait: false
     values:
-      defaultArgs:
-        - --cert-dir=/tmp
-        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-        - --kubelet-use-node-status-port
-        - --metric-resolution=15s
-        - --kubelet-insecure-tls
-
-- name: add repo helm chart kube-state-metrics
-  kubernetes.core.helm_repository:
-    name: "bitnami"
-    repo_url: "https://charts.bitnami.com/bitnami"
-    force_update: yes
-
-- name: deploy kube-state-metrics
-  kubernetes.core.helm:
-    name: kube-state-metrics
-    chart_version: "5.0.5"
-    chart_ref: bitnami/kube-state-metrics
-    release_namespace: kube-state-metrics
-    create_namespace: true
-    wait: false
-    values:
-      kubelet:
-        insecureSkipTLSVerify: true
-
-# - name: deploy postgresql
-#   kubernetes.core.helm:
-#     name: postgresql
-#     chart_version: "16.6.3"
-#     chart_ref: bitnami/postgresql
-#     release_namespace: postgresql
-#     create_namespace: true
-#     wait: false
-
-# - name: add repo argo-helm
-#   kubernetes.core.helm_repository:
-#     name: argo
-#     repo_url: https://argoproj.github.io/argo-helm
-
-# - name: helm deploy argo
-#   kubernetes.core.helm:
-#     name: "argocd"
-#     chart_ref: "argo/argo-cd"
-#     release_namespace: "argocd"
-#     create_namespace: true
-#     update_repo_cache: true
-#     force: true
-#     wait: false
-#     values:
-#       configs:
-#         params:
-#           "server.insecure": true
-#         cm:
-#           "users.anonymous.enabled": false
-#           "users.session.duration": "48h"
-#           "admin.enabled": true
-#           url: http://argocd.local
-
-# - name: deploy loki
-#   kubernetes.core.helm:
-#     name: loki
-#     chart_version: "6.29.0"
-#     chart_ref: grafana/loki
-#     release_namespace: loki
-#     create_namespace: true
-#     wait: false
+      fullnameOverride: argocd
+      global:
+        domain: argocd.otacon.local
+        logging:
+          level: error
+      dex:
+        enabled: false
+      configs:
+        params:
+          "server.insecure": true
+        cm:
+          "users.anonymous.enabled": false
+          "accounts.image-updater": apiKey
+          "accounts.image-updater.enabled": true
+          "admin.enabled": true
+        # url: http://argocd.otacon.local
+      rbac:
+        policy.csv: |
+          p, role:image-updater, applications, get, */*, allow
+          p, role:image-updater, applications, update, */*, allow
+          g, image-updater, role:image-updater
+        scopes: "[email, group]"
+      server:
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+      notifications:
+        enabled: false
 
 - name: add repo helm chart metallb
   kubernetes.core.helm_repository:
     name: metallb
     repo_url: "https://metallb.github.io/metallb"
-    force_update: yes
+    force_update: true
 
 - name: deploy metallb
   kubernetes.core.helm:
@@ -179,7 +170,7 @@
   kubernetes.core.helm_repository:
     name: ingress-nginx
     repo_url: "https://kubernetes.github.io/ingress-nginx"
-    force_update: yes
+    force_update: true
 
 - name: deploy ingress-nginx
   kubernetes.core.helm:
@@ -196,44 +187,7 @@
         service:
           loadBalancerIP: "{{metallb_loadbalancer_ip_range.split('-')[0]}}"
           externalTrafficPolicy: "Local"
-
-- name: add repo helm chart strimzi
-  kubernetes.core.helm_repository:
-    name: strimzi
-    repo_url: "https://strimzi.io/charts/"
-    force_update: yes
-
-- name: deploy strimzi-kafka-operator
-  kubernetes.core.helm:
-    name: strimzi
-    chart_version: "0.46.0"
-    chart_ref: strimzi/strimzi-kafka-operator
-    release_namespace: kafka
-    create_namespace: true
-    force: false
-
-- name: add repo helm chart apache doris
-  kubernetes.core.helm_repository:
-    name: selectdb
-    repo_url: "https://charts.selectdb.com"
-    force_update: yes
-
-- name: deploy apache-doris operator
-  kubernetes.core.helm:
-    name: doris-operator
-    chart_version: "25.4.0"
-    chart_ref: selectdb/doris-operator
-    release_namespace: apache-doris
-    create_namespace: true
-    wait: true
-    force: false
-
-- name: deploy apache-doris cluster
-  kubernetes.core.helm:
-    name: doris-cluster
-    chart_version: "25.4.0"
-    chart_ref: selectdb/doris
-    release_namespace: apache-doris
-    create_namespace: true
-    wait: true
-    force: false
+      tcp:
+        3306: mariadb/mariadb:3306
+        5432: postgresql/postgresql:5432
+        6379: redis/redis-master:6379
