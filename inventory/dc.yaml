@@ -12,9 +12,7 @@ all:
     nerdctl_version: "0.22.2"
     nfs_path: /k8s
     nfs_client_cidr: 192.168.1.0/24
-    metallb_loadbalancer_ip_range: 192.168.1.24-192.168.1.25
-    prometheus_version: 2.53.1
-    alertmanager_version: 0.27.0
+    metallb_loadbalancer_ip_range: 192.168.1.13-192.168.1.30
     prometheus_arch: amd64
   children:
     controlplane:
@@ -22,11 +20,9 @@ all:
         192.168.1.20:
     nodes:
       hosts:
-        192.168.1.21:
-        192.168.1.22:
-        192.168.1.23:
-        192.168.1.31:
-        192.168.1.32:
-    monitoring_servers:
-      hosts:
-        192.168.1.146:
+        # 192.168.1.21:
+        # 192.168.1.22:
+        # 192.168.1.23:
+        # 192.168.1.31:
+        # 192.168.1.32:
+        192.168.1.33:

@@ -134,13 +134,19 @@
           "users.anonymous.enabled": false
           "accounts.image-updater": apiKey
           "accounts.image-updater.enabled": true
+          "accounts.vitor.enabled": true
+          "accounts.vitor": login
           "admin.enabled": true
-        # url: http://argocd.otacon.local
       rbac:
         policy.csv: |
+          p, role:op, applications, get, */*, allow
+          p, role:op, applications, logs, */*, allow
+          p, role:op, applications, sync, */*, allow
           p, role:image-updater, applications, get, */*, allow
           p, role:image-updater, applications, update, */*, allow
           g, image-updater, role:image-updater
+          g, vitor, role:admin
+          g, admin, role:admin
         scopes: "[email, group]"
       server:
         ingress:
@@ -148,6 +154,90 @@
           ingressClassName: nginx
       notifications:
         enabled: false
+
+- name: helm deploy argocd-image-updater
+  kubernetes.core.helm:
+    name: "argocd-image-updater"
+    chart_ref: "argo/argocd-image-updater"
+    release_namespace: "argocd"
+    create_namespace: true
+    update_repo_cache: true
+    force: true
+    wait: false
+    values:
+      fullnameOverride: argocd-image-updater
+      metrics:
+        enabled: true
+      config:
+        gitCommitUser: vit0r
+        # gitCommitMail: ""
+        gitCommitTemplate: |
+          build: argocd-image-updater apply {%raw%}{{ .AppName }}{%endraw%}
+          {%raw%}{{ range .AppChanges -}}{%endraw%}
+          updates image {%raw%}{{ .Image }}{%endraw%} tag '{%raw%}{{ .OldTag }}{%endraw%}' to '{%raw%}{{ .NewTag }}{%endraw%}'
+          {%raw%}{{ end -}}{%endraw%}
+        logLevel: info
+        argocd:
+          token: argocd-image-updater#token
+        registries:
+          - name: Docker Hub
+            api_url: https://index.docker.io
+            prefix: docker.io/vit0r
+            defaultns: library
+            ping: no
+            credentials: secret:argocd/argocd-image-updater#credentials
+            default: true
+
+- name: helm deploy argo-rollouts
+  kubernetes.core.helm:
+    name: "argo-rollouts"
+    chart_ref: "argo/argo-rollouts"
+    release_namespace: "argocd"
+    create_namespace: true
+    update_repo_cache: true
+    force: true
+    wait: false
+    values:
+      dashboard:
+        ingress:
+          enabled: true
+          annotations: {}
+          labels: {}
+          ingressClassName: nginx
+          hosts:
+            - argorollouts.otacon.local
+          paths:
+            - /
+          pathType: Prefix
+          tls:
+            - secretName: argorollouts-otacon-tls
+              hosts:
+                - argorollouts.otacon.local
+
+- name: helm deploy argo-workflows
+  kubernetes.core.helm:
+    name: "argo-workflows"
+    chart_ref: "argo/argo-workflows"
+    release_namespace: "argocd"
+    create_namespace: true
+    update_repo_cache: true
+    force: true
+    wait: false
+    values:
+      server:
+        ingress:
+          enabled: true
+          annotations: {}
+          ingressClassName: nginx
+          hosts:
+            - argoworkflows.otacon.local
+          paths:
+            - /
+          pathType: Prefix
+          tls:
+            - secretName: argoworkflows-otacon-tls
+              hosts:
+                - argoworkflows.otacon.local
 
 - name: add repo helm chart metallb
   kubernetes.core.helm_repository:
@@ -190,4 +280,5 @@
       tcp:
         3306: mariadb/mariadb:3306
         5432: postgresql/postgresql:5432
-        6379: redis/redis-master:6379
+        6379: redis/redis-headless:6379
+        26379: redis/redis-headless:26379
