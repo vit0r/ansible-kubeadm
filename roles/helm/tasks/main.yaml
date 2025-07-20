@@ -265,12 +265,15 @@
 - name: deploy ingress-nginx
   kubernetes.core.helm:
     name: ingress-nginx
-    chart_version: "4.12.2"
+    chart_version: "4.13.0"
     chart_ref: ingress-nginx/ingress-nginx
     release_namespace: ingress-nginx
     create_namespace: true
     wait: false
     values:
+      defaultBackend:
+        autoscaling:
+          enabled: true
       controller:
         extraArgs:
           "enable-ssl-passthrough": ""
