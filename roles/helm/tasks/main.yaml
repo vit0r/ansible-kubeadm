@@ -54,6 +54,7 @@
 - name: helm deploy argo
   kubernetes.core.helm:
     name: "argocd"
+    chart_version: "9.1.3"
     chart_ref: "argo/argo-cd"
     release_namespace: "argocd"
     create_namespace: true
@@ -99,6 +100,7 @@
 - name: helm deploy argocd-image-updater
   kubernetes.core.helm:
     name: "argocd-image-updater"
+    chart_version: "1.0.1"
     chart_ref: "argo/argocd-image-updater"
     release_namespace: "argocd"
     create_namespace: true
