@@ -23,65 +23,6 @@
         group: "{{become_user}}"
         mode: "0770"
 
-- name: add repo helm cert-manager
-  kubernetes.core.helm_repository:
-    name: jetstack
-    repo_url: "https://charts.jetstack.io"
-    force_update: true
-
-- name: deploy cert-manager
-  kubernetes.core.helm:
-    name: cert-manager
-    chart_version: "1.17.1"
-    chart_ref: jetstack/cert-manager
-    release_namespace: cert-manager
-    create_namespace: true
-    wait: true
-    values:
-      installCRDs: true
-      prometheus:
-        enabled: true
-      webhook:
-        timeoutSeconds: 4
-
-- name: create cluster issuer letsencrypt-nginx nginx
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: letsencrypt-nginx-nginx
-      spec:
-        acme:
-          email: jonasdbz9@gmail.com
-          privateKeySecretRef:
-            name: letsencrypt-nginx-nginx
-          server: https://acme-v02.api.letsencrypt-nginx.org/directory
-          solvers:
-            - http01:
-                ingress:
-                  class: nginx
-
-- name: create cluster issuer letsencrypt-traefik
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: letsencrypt-traefik
-      spec:
-        acme:
-          email: jonasdbz9@gmail.com
-          privateKeySecretRef:
-            name: letsencrypt-traefik
-          server: https://acme-v02.api.letsencrypt-nginx.org/directory
-          solvers:
-            - http01:
-                ingress:
-                  class: traefik
-
 - name: add repo helm chart nfs-subdir-external-provisioner
   kubernetes.core.helm_repository:
     name: "nfs-subdir-external-provisioner"
@@ -103,7 +44,7 @@
       nfs:
         server: "{{ hostvars[groups['nfs_servers'][0]].inventory_hostname }}"
         path: "{{ nfs_path }}"
-      archiveOnDelete: true
+      archiveOnDelete: false
 
 - name: add repo argo-helm
   kubernetes.core.helm_repository:
@@ -188,57 +129,6 @@
             credentials: secret:argocd/argocd-image-updater#credentials
             default: true
 
-- name: helm deploy argo-rollouts
-  kubernetes.core.helm:
-    name: "argo-rollouts"
-    chart_ref: "argo/argo-rollouts"
-    release_namespace: "argocd"
-    create_namespace: true
-    update_repo_cache: true
-    force: true
-    wait: false
-    values:
-      dashboard:
-        ingress:
-          enabled: true
-          annotations: {}
-          labels: {}
-          ingressClassName: nginx
-          hosts:
-            - argorollouts.otacon.local
-          paths:
-            - /
-          pathType: Prefix
-          tls:
-            - secretName: argorollouts-otacon-tls
-              hosts:
-                - argorollouts.otacon.local
-
-- name: helm deploy argo-workflows
-  kubernetes.core.helm:
-    name: "argo-workflows"
-    chart_ref: "argo/argo-workflows"
-    release_namespace: "argocd"
-    create_namespace: true
-    update_repo_cache: true
-    force: true
-    wait: false
-    values:
-      server:
-        ingress:
-          enabled: true
-          annotations: {}
-          ingressClassName: nginx
-          hosts:
-            - argoworkflows.otacon.local
-          paths:
-            - /
-          pathType: Prefix
-          tls:
-            - secretName: argoworkflows-otacon-tls
-              hosts:
-                - argoworkflows.otacon.local
-
 - name: add repo helm chart metallb
   kubernetes.core.helm_repository:
     name: metallb
@@ -248,13 +138,41 @@
 - name: deploy metallb
   kubernetes.core.helm:
     name: metallb
-    chart_version: "0.14.9"
+    chart_version: "0.15.2"
     chart_ref: metallb/metallb
     release_namespace: metallb-system
     create_namespace: true
     wait: true
     values:
       installCRDs: true
+
+- name: create a IPAddressPool object
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: default
+        namespace: metallb-system
+      spec:
+        addresses:
+          - "{{metallb_loadbalancer_ip_range}}"
+        autoAssign: true
+        allow-icmp: true
+        avoidBuggyIPs: false
+- name: create a L2Advertisement object
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: default
+        namespace: metallb-system
+      spec:
+        ipAddressPools:
+          - default
 
 - name: add repo helm chart ingress-nginx
   kubernetes.core.helm_repository:
@@ -265,7 +183,7 @@
 - name: deploy ingress-nginx
   kubernetes.core.helm:
     name: ingress-nginx
-    chart_version: "4.13.0"
+    chart_version: "4.14.0"
     chart_ref: ingress-nginx/ingress-nginx
     release_namespace: ingress-nginx
     create_namespace: true
@@ -283,5 +201,6 @@
       tcp:
         3306: mariadb/mariadb:3306
         5432: postgresql/postgresql:5432
-        6379: redis/redis-headless:6379
-        26379: redis/redis-headless:26379
+        8040: doris/otacon-be-internal:8040
+        8030: doris/otacon-fe-internal:8030
+        9030: doris/otacon-fe-internal:9030

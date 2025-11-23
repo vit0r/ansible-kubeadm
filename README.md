@@ -18,8 +18,8 @@ ansible-playbook k8s-controlplane-playbook.yml
 ansible-playbook k8s-node-playbook.yml
 ```
 
-## setup metallb
+## setup helm
 
 ```console
-ansible-playbook k8s-metallb-playbook.yml
+ansible-playbook k8s-helm-playbook.yml
 ```

@@ -1,0 +1,39 @@
+- name: apt mark unhold kubernetes version
+  shell: apt-mark unhold kubelet kubeadm kubectl >> kubernetes-unhold.log
+  args:
+    chdir: $HOME
+    creates: kubernetes-unhold.log
+
+- name: kubeadm current version
+  shell: kubeadm version -o json > kubeadm_current_version.json
+  args:
+    chdir: $HOME
+    creates: kubeadm_current_version.json
+
+- name: kubeadm upgrade plan
+  shell: kubeadm upgrade plan > kubeadm_upgrade_plan.json
+  args:
+    chdir: $HOME
+    creates: kubeadm_upgrade_plan.json
+
+- name: control plane node to evict workloads
+  shell: kubectl drain {{ ansible_default_ipv4.address }} --ignore-daemonsets > kubeadm_drain_cp.log
+  args:
+    chdir: $HOME
+    creates: kubeadm_drain_cp.log
+
+- name: upgrade kubernetes bootstrap pkgs
+  package:
+    update_cache: yes
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - kubelet={{ kubeadm_version }}*
+    - kubeadm={{ kubeadm_version }}*
+    - kubectl={{ kubeadm_version }}*
+
+- name: apply upgrade
+  shell: kubeadm upgrade apply {{ ansible_ssh_host | replace('.','') }} > kubeadm_apply_upgrade_cp.log
+  args:
+    chdir: $HOME
+    creates: kubeadm_apply_upgrade_cp.log

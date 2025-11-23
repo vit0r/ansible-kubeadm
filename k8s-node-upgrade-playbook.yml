@@ -1,0 +1,13 @@
+- hosts: controlplane
+  become_user: "{{ become_user }}"
+  remote_user: "{{ remote_user }}"
+  become: yes
+  roles:
+    - { role: token }
+- hosts: nodes
+  become_user: "{{ become_user }}"
+  remote_user: "{{ remote_user }}"
+  become: yes
+  roles:
+    - { role: commons }
+    - { role: nodes-upgrade }
