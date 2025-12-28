@@ -1,0 +1,2 @@
+- include_tasks: "so.yaml"
+- include_tasks: "kubeadm.yaml"

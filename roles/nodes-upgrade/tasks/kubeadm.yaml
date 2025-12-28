@@ -26,23 +26,10 @@
     creates: kubernetes-unhold.log
   when: kubernetes_gpg_key.stat.exists == False
 
-- name: kubeadm current version
-  shell: kubeadm version -o json > kubeadm_current_version.json
-  args:
-    chdir: $HOME
-    creates: kubeadm_current_version.json
-  when: kubernetes_gpg_key.stat.exists == False
-
-- name: kubeadm upgrade plan
-  shell: kubeadm upgrade plan > kubeadm_upgrade_plan.json
-  args:
-    chdir: $HOME
-    creates: kubeadm_upgrade_plan.json
-  when: kubernetes_gpg_key.stat.exists == False
-
 - name: upgrade kubernetes bootstrap pkgs
   package:
     update_cache: yes
+    allow_change_held_packages: yes
     state: present
     name: "{{ item }}"
   with_items:
@@ -52,10 +39,10 @@
   when: kubernetes_gpg_key.stat.exists == False
 
 - name: apply upgrade
-  shell: kubeadm upgrade apply {{ kubeadm_version }}* > kubeadm_apply_upgrade_cp.log
+  shell: kubeadm upgrade node > kubeadm_apply_upgrade_node.log
   args:
     chdir: $HOME
-    creates: kubeadm_apply_upgrade_cp.log
+    creates: kubeadm_apply_upgrade_node.log
   when: kubernetes_gpg_key.stat.exists == False
 
 - name: apt mark hold kubernetes version

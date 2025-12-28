@@ -3,16 +3,20 @@ all:
     kube_api_dns: otaconpf.ddns.net
     remote_user: debian
     become_user: root
-    kubeadm_version: "1.33"
-    containerd_version: "2.2.0"
-    runc_version: "1.3.3"
-    cni_plugins_version: "1.8.0"
+    kubeadm_version: "1.35"
+    containerd_version: "2.2.1"
+    runc_version: "1.4.0"
+    cni_plugins_version: "1.9.0"
     k9s_version: "0.50.16"
     helm_version: "3.19.0"
-    nerdctl_version: "2.2.0"
+    nerdctl_version: "2.2.1"
     nfs_path: /k8s
     nfs_client_cidr: 192.168.50.0/24
     metallb_loadbalancer_ip_range: 192.168.50.50-192.168.50.51
+    elasticsearch_host: "https://elasticsearch.otacon.local:443"
+    elasticsearch_username: "elastic"
+    elasticsearch_password: "Xpto123*"
+    filebeat_version: "7.17.22"
   children:
     controlplane:
       hosts:

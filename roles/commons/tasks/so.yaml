@@ -82,6 +82,10 @@
         "src": "10-ulimits.conf.j2",
         "dest": "/etc/systemd/system/kubelet.service.d/10-ulimits.conf",
       }
+    - {
+        "src": "kubeadm-flags.env.j2",
+        "dest": "/var/lib/kubelet/kubeadm-flags.env",
+      }
 
 - name: modprobes turn on
   modprobe:

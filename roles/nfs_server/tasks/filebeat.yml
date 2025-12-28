@@ -1,0 +1,46 @@
+- name: Install dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - curl
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Add Elastic GPG key
+  shell: |
+    curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch \
+    | gpg --dearmor -o /usr/share/keyrings/elastic.gpg
+  args:
+    creates: /usr/share/keyrings/elastic.gpg
+
+- name: Add Elastic repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main"
+    state: present
+    filename: elastic-7x
+
+- name: Install Filebeat
+  apt:
+    name: "filebeat={{ filebeat_version }}"
+    state: present
+    update_cache: yes
+
+- name: Deploy filebeat.yml
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable and start Filebeat
+  systemd:
+    name: filebeat
+    enabled: yes
+    state: started
+
+- name: Restart Filebeat
+  systemd:
+    name: filebeat
+    state: restarted

@@ -1,0 +1,31 @@
+filebeat.inputs:
+  - type: filestream
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/messages
+      - /var/log/auth.log
+      - /var/log/user.log
+    fields:
+      custom_service: nfs
+    fields_under_root: false
+
+processors:
+  - add_host_metadata: {}
+  - add_cloud_metadata: {}
+
+setup.ilm.enabled: false
+
+setup.template.enabled: true
+setup.template.name: "nfs-server"
+setup.template.pattern: "nfs-server-*"
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 1
+
+output.elasticsearch:
+  hosts: ["{{ elasticsearch_host }}"]
+  index: "nfs-server-%{+yyyy.MM.dd}"
+  ssl.verification_mode: none
+  username: "{{ elasticsearch_username }}"
+  password: "{{ elasticsearch_password }}"
