@@ -4,6 +4,9 @@
     chdir: $HOME
     creates: kubeadmreset.log
 
+- name: reboot node
+  reboot:
+
 - name: join node to cluster
   block:
     - name: join
@@ -11,5 +14,3 @@
       args:
         chdir: $HOME
         creates: joincommand.log
-    - name: reboot node
-      reboot:

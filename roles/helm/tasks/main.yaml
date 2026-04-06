@@ -54,7 +54,7 @@
 - name: helm deploy argo
   kubernetes.core.helm:
     name: "argocd"
-    chart_version: "9.1.6"
+    chart_version: "9.4.17"
     chart_ref: "argo/argo-cd"
     release_namespace: "argocd"
     create_namespace: true
@@ -73,12 +73,13 @@
         params:
           "server.insecure": true
         cm:
-          "users.anonymous.enabled": false
+          "users.anonymous.enabled": true
           "accounts.image-updater": apiKey
           "accounts.image-updater.enabled": true
           "accounts.vitor.enabled": true
           "accounts.vitor": login
           "admin.enabled": true
+          "timeout.reconciliation": 5m
       rbac:
         policy.csv: |
           p, role:op, applications, get, */*, allow
@@ -96,11 +97,15 @@
           ingressClassName: nginx
       notifications:
         enabled: false
+      repoServer:
+        extraArgs:
+          - --repo-cache-expiration
+          - "10m"
 
 - name: helm deploy argocd-image-updater
   kubernetes.core.helm:
     name: "argocd-image-updater"
-    chart_version: "1.0.1"
+    chart_version: "1.1.4"
     chart_ref: "argo/argocd-image-updater"
     release_namespace: "argocd"
     create_namespace: true
@@ -140,7 +145,7 @@
 - name: deploy metallb
   kubernetes.core.helm:
     name: metallb
-    chart_version: "0.15.2"
+    chart_version: "0.15.3"
     chart_ref: metallb/metallb
     release_namespace: metallb-system
     create_namespace: true
@@ -185,7 +190,7 @@
 - name: deploy ingress-nginx
   kubernetes.core.helm:
     name: ingress-nginx
-    chart_version: "4.14.0"
+    chart_version: "4.15.1"
     chart_ref: ingress-nginx/ingress-nginx
     release_namespace: ingress-nginx
     create_namespace: true
@@ -202,7 +207,4 @@
           externalTrafficPolicy: "Local"
       tcp:
         3306: mariadb/mariadb:3306
-        5432: postgresql/postgresql:5432
-        8040: doris/otacon-be-internal:8040
-        8030: doris/otacon-fe-internal:8030
-        9030: doris/otacon-fe-internal:9030
+        5432: postgresql/postgresql-stack:5432

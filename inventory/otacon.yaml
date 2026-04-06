@@ -3,7 +3,7 @@ all:
     kube_api_dns: otaconpf.ddns.net
     remote_user: debian
     become_user: root
-    kubeadm_version: "1.35"
+    kubeadm_version: "1.33"
     containerd_version: "2.2.1"
     runc_version: "1.4.0"
     cni_plugins_version: "1.9.0"
@@ -24,6 +24,7 @@ all:
     nodes:
       hosts:
         192.168.50.21:
+        192.168.50.23:
     nfs_servers:
       hosts:
         192.168.50.22:
